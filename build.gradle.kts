@@ -13,6 +13,16 @@ loom {
     // на access widener: Mixin отклоняет interface-миксин над классом
     // ("@Mixin target type mismatch: ... is not an interface").
     accessWidenerPath = file("src/main/resources/b2xy.accesswidener")
+
+    mixin {
+        // Миксины бьют по классам самого Meteor (CrystalAura, чужой @Shadow полей),
+        // а у meteor-client в fabric.mod.json нет объявления mappings. Старый
+        // annotation processor пытается найти для них обфускационное отображение и
+        // падает с "Unable to locate obfuscation mapping for @Inject target".
+        // С этой опцией Loom не генерирует refmap, а пишет имена прямо в байткод —
+        // ровно то поведение, ради которого миксины и писались.
+        useLegacyMixinAp = false
+    }
 }
 
 repositories {

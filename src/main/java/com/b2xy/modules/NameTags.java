@@ -618,7 +618,7 @@ public class NameTags extends Module {
 
     private void drawAvatar(DrawContext drawContext, PlayerEntity player, double x, double y, double size) {
         if (!(player instanceof AbstractClientPlayerEntity ap)) return;
-        Identifier skin = ap.getSkin().body().texturePath();
+        Identifier skin = ap.getSkinTextures().texture();
         drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, skin, (int) x, (int) y, 8f, 8f, (int) size, (int) size, 8, 8, 64, 64);
     }
 
