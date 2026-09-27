@@ -58,7 +58,7 @@ src/main/resources/
 `ActivatedSpawnerDetector`, `AutoTnt`, `AutoWither`, `AutoXp`, `BepMine`, `BetterF5`,
 `CrystalAuraTurbo`, `ElytraBounce`, `ElytraRecast`, `ElytraSwap`, `GrimAirPlace`,
 `GrimGlide`, `GrimVelocity`, `GuiMove`, `HoleSnap`, `InvFix2b2t`, `LitematicaPrinter`,
-`NameTags`, `NewChunks`, `NofallVanilla`, `NoHurtCam`, `NoJumpDelay`, `NoWeb`,
+`NameTags`, `NewChunks`, `NoHurtCam`, `NoJumpDelay`, `NoWeb`,
 `Pitch40`, `Replenish`, `RocketBoost`, `VillagerRoller`.
 
 ## Происхождение кода
