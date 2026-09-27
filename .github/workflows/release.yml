@@ -30,11 +30,23 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Определить версию Minecraft
+        id: mc
+        run: |
+          mc=$(grep -E '^minecraft = "' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
+          echo "version=$mc" >> "$GITHUB_OUTPUT"
+          echo "Собираю релиз для Minecraft $mc"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: ${{ github.ref_name }}
+          name: B2XY ${{ github.ref_name }} для Minecraft ${{ steps.mc.outputs.version }}
           files: |
             ./build/libs/*.jar
           fail_on_unmatched_files: true
+          body: |
+            Сборка аддона для **Minecraft ${{ steps.mc.outputs.version }}**.
+
+            Требуется Meteor Client для этой же версии Minecraft и Java 21.
+            Файл кладётся в папку `mods` рядом с Meteor Client.
