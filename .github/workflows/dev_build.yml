@@ -1,6 +1,11 @@
 name: Publish Development Build
 on: push
 
+# У новых репозиториев GITHUB_TOKEN по умолчанию только на чтение, а шаг Release
+# создаёт и обновляет релизы — без явных прав он упал бы с 403.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
