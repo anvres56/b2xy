@@ -75,7 +75,7 @@ import java.util.List;
  * </ul>
  */
 public class HoleSnap extends Module {
-    /** Приоритет ротации в RotationUtils (как в ElytraBounce/EChestRebreak). */
+    /** Приоритет ротации в RotationUtils (как в ElytraBounce). */
     private static final int ROTATION_PRIORITY = 45;
     /** HoleSnapSearchHelper4_3.val — базовое смещение за тик (0.2873 * 20 = 5.75 б/с). */
     private static final double BASE_SPEED = 0.2873;

@@ -56,11 +56,10 @@ src/main/resources/
 ## Модули
 
 `ActivatedSpawnerDetector`, `AutoTnt`, `AutoWither`, `AutoXp`, `BepMine`, `BetterF5`,
-`CrystalAuraTurbo`, `EChestRebreak`, `ElytraBounce`, `ElytraRecast`, `ElytraSwap`,
-`FallFlyNoFall`, `GrimAirPlace`, `GrimGlide`, `GrimVelocity`, `GuiMove`, `HoleSnap`,
-`InvFix2b2t`, `LitematicaPrinter`, `NameTags`, `NewChunks`, `NofallVanilla`,
-`NoHurtCam`, `NoJumpDelay`, `NoWeb`, `Pitch40`, `Replenish`, `RocketBoost`,
-`VillagerRoller`.
+`CrystalAuraTurbo`, `ElytraBounce`, `ElytraRecast`, `ElytraSwap`, `GrimAirPlace`,
+`GrimGlide`, `GrimVelocity`, `GuiMove`, `HoleSnap`, `InvFix2b2t`, `LitematicaPrinter`,
+`NameTags`, `NewChunks`, `NofallVanilla`, `NoHurtCam`, `NoJumpDelay`, `NoWeb`,
+`Pitch40`, `Replenish`, `RocketBoost`, `VillagerRoller`.
 
 ## Происхождение кода
 

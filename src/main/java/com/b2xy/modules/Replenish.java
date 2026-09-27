@@ -13,17 +13,13 @@ import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.AxeItem;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.CrossbowItem;
-import net.minecraft.item.HoeItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.PickaxeItem;
 import net.minecraft.item.PotionItem;
-import net.minecraft.item.ShovelItem;
 import net.minecraft.item.TridentItem;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
@@ -42,8 +38,11 @@ import java.util.Map;
  * <ul>
  *   <li>{@code stack.getComponents().contains(FOOD_COMPONENT)} вместо обёртки
  *       с {@code canEat()} (1.21.11: еда — компонент, а не метод на Item);</li>
- *   <li>{@code PickaxeItem} добавлен явно к инструментам — в декомпиляции он ловился
- *       строкой {@code toString().contains("pickaxe")};</li>
+ *   <li>инструменты и оружие определяются по компонентам {@code TOOL} и
+ *       {@code WEAPON} — в 1.21.11 классов {@code PickaxeItem} и
+ *       {@code SwordItem} больше нет, у кирки и мечей это обычные {@code Item}
+ *       с компонентами (в декомпиляции bep.hax инструменты ловились строкой
+ *       {@code toString().contains("pickaxe")});</li>
  *   <li>в {@code attemptRefill} декомпиляция дважды звала {@code findSourceSlot} —
  *       второй вызов убран (первый же проверял кастомные имена);</li>
  *   <li>поля {@code currentScreenHandler}/{@code playerScreenHandler} — 1.21.11
@@ -286,7 +285,7 @@ public class Replenish extends Module {
         if (this.refillGaps.get() && (item == Items.GOLDEN_APPLE || item == Items.ENCHANTED_GOLDEN_APPLE)) return true;
         if (this.refillFireworks.get() && item == Items.FIREWORK_ROCKET) return true;
         if (this.refillBlocks.get() && item instanceof BlockItem) return true;
-        if (this.refillFood.get() && item.getComponents().contains(DataComponentTypes.FOOD_COMPONENT)) return true;
+        if (this.refillFood.get() && item.getComponents().contains(DataComponentTypes.FOOD)) return true;
         if (this.refillTools.get() && isTool(item)) return true;
         if (this.refillWeapons.get() && isWeapon(item)) return true;
         if (this.refillProjectiles.get() && (item == Items.ARROW || item == Items.FIREWORK_ROCKET || item == Items.SPECTRAL_ARROW)) return true;
@@ -294,11 +293,15 @@ public class Replenish extends Module {
     }
 
     private boolean isTool(Item item) {
-        return item instanceof PickaxeItem || item instanceof AxeItem || item instanceof ShovelItem || item instanceof HoeItem;
+        // В 1.21.11 классов PickaxeItem/AxeItem/ShovelItem больше нет у кирки,
+        // а у топоров/лопат/мотыг — есть, поэтому надёжнее проверять сам компонент
+        // TOOL: он есть у любого инструмента (в том числе у кирки).
+        return item.getComponents().contains(DataComponentTypes.TOOL);
     }
 
     private boolean isWeapon(Item item) {
-        return item instanceof net.minecraft.item.SwordItem
+        // Мечей как класса тоже не осталось: у клинкового оружия компонент WEAPON.
+        return item.getComponents().contains(DataComponentTypes.WEAPON)
             || item instanceof BowItem
             || item instanceof CrossbowItem
             || item instanceof TridentItem;
