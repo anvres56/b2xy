@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "b2xy",
+  "version": "${version}",
+  "name": "B2XY",
+  "description": "Meteor Client addon for 2b2t.org.ru and xyeta.online.",
+  "authors": [
+    "anvres"
+  ],
+  "icon": "assets/b2xy/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "meteor": [
+      "com.b2xy.B2XY"
+    ]
+  },
+  "accessWidener": "b2xy.accesswidener",
+  "mixins": [
+    "b2xy.mixins.json"
+  ],
+  "custom": {
+    "meteor-client:color": "225,25,25",
+    "modmenu": {
+      "parent": {
+        "id": "meteor-client"
+      }
+    }
+  },
+  "depends": {
+    "java": ">=21",
+    "minecraft": ["${mc_version}"],
+    "meteor-client": "*"
+  }
+}

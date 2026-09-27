@@ -1,0 +1,209 @@
+package com.b2xy.modules;
+
+import com.b2xy.B2XY;
+import meteordevelopment.meteorclient.events.packets.PacketEvent;
+import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.settings.BoolSetting;
+import meteordevelopment.meteorclient.settings.DoubleSetting;
+import meteordevelopment.meteorclient.settings.IntSetting;
+import meteordevelopment.meteorclient.settings.Setting;
+import meteordevelopment.meteorclient.settings.SettingGroup;
+import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.player.InvUtils;
+import meteordevelopment.orbit.EventHandler;
+import net.minecraft.block.Blocks;
+import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+
+/*
+    Портируемо из: Trouser-Streak (AutoTnt)
+*/
+public class AutoTnt extends Module {
+    private final SettingGroup sgGeneral = settings.getDefaultGroup();
+
+    private final Setting<Boolean> useTickDelay = sgGeneral.add(new BoolSetting.Builder()
+        .name("use-tick-delay")
+        .description("Ожидает настраиваемое количество тиков перед поджиганием каждого динамита.")
+        .defaultValue(false)
+        .build()
+    );
+
+    private final Setting<Integer> tickDelay = sgGeneral.add(new IntSetting.Builder()
+        .name("tick-delay")
+        .description("Задержка в тиках перед поджиганием динамита.")
+        .defaultValue(5)
+        .min(1)
+        .sliderRange(1, 40)
+        .visible(useTickDelay::get)
+        .build()
+    );
+
+    private final Setting<Double> reach = sgGeneral.add(new DoubleSetting.Builder()
+        .name("reach")
+        .description("Динамит должен быть в пределах этого радиуса, чтобы его можно было поджечь.")
+        .defaultValue(5.5)
+        .min(1)
+        .sliderRange(1, 10)
+        .visible(useTickDelay::get)
+        .build()
+    );
+
+    private final Set<BlockPos> candidatePositions = new HashSet<>();
+    private final Queue<IgnitionTask> ignitionQueue = new LinkedList<>();
+    private BlockPos ignitePos;
+
+    private boolean igniting = false;
+    private int originalSlot = -1;
+    private int flintSlot = -1;
+
+    private record IgnitionTask(BlockPos pos, int ticksRemaining) {}
+
+    public AutoTnt() {
+        super(B2XY.CATEGORY, "auto-tnt", "Автоматически поджигает размещённый динамит с необязательной задержкой в тиках.");
+    }
+
+    @Override
+    public void onActivate() {
+        ignitePos = null;
+        candidatePositions.clear();
+        ignitionQueue.clear();
+        igniting = false;
+        originalSlot = -1;
+        flintSlot = -1;
+    }
+
+    @EventHandler
+    private void onSendPacket(PacketEvent.Send event) {
+        if (mc.player == null || mc.world == null || igniting) return;
+
+        if (event.packet instanceof PlayerInteractBlockC2SPacket packet) {
+            BlockHitResult hit = packet.getBlockHitResult();
+            BlockPos clicked = hit.getBlockPos();
+            BlockPos offset = clicked.offset(hit.getSide());
+
+            boolean clickedIsTnt = mc.world.getBlockState(clicked).isOf(Blocks.TNT);
+            boolean offsetIsTnt = mc.world.getBlockState(offset).isOf(Blocks.TNT);
+
+            if (clickedIsTnt) candidatePositions.add(clicked);
+            if (offsetIsTnt) candidatePositions.add(offset);
+        }
+
+        if (!candidatePositions.isEmpty() && ignitePos == null && !igniting) {
+            Iterator<BlockPos> it = candidatePositions.iterator();
+            while (it.hasNext()) {
+                BlockPos pos = it.next();
+                if (mc.world.getBlockState(pos).getBlock() == Blocks.TNT) {
+                    if (ignitionQueue.stream().anyMatch(task -> task.pos().equals(pos))) {
+                        it.remove();
+                        continue;
+                    }
+
+                    it.remove();
+                    if (useTickDelay.get()) {
+                        ignitionQueue.add(new IgnitionTask(pos, tickDelay.get()));
+                    } else {
+                        ignitePos = pos;
+                        candidatePositions.clear();
+                        break;
+                    }
+                } else {
+                    it.remove();
+                }
+            }
+        }
+
+        if (useTickDelay.get()) return;
+
+        if (ignitePos != null && !igniting && flintSlot == -1) {
+            if (originalSlot == -1) {
+                originalSlot = mc.player.getInventory().getSelectedSlot();
+            }
+
+            flintSlot = InvUtils.findInHotbar(Items.FLINT_AND_STEEL).slot();
+            if (flintSlot == -1 || flintSlot == 40) {
+                error("Зажигалка не найдена в хотбаре!");
+                ignitePos = null;
+                originalSlot = -1;
+                flintSlot = -1;
+                return;
+            }
+
+            mc.player.getInventory().setSelectedSlot(flintSlot);
+            return;
+        }
+
+        if (ignitePos != null && !igniting && mc.player.getInventory().getSelectedSlot() == flintSlot) {
+            igniting = true;
+            Vec3d hitVec = Vec3d.ofCenter(ignitePos);
+            BlockHitResult hit = new BlockHitResult(hitVec, Direction.UP, ignitePos, false);
+            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hit);
+            mc.player.swingHand(Hand.MAIN_HAND);
+
+            mc.player.getInventory().setSelectedSlot(originalSlot);
+            ignitePos = null;
+            flintSlot = -1;
+            originalSlot = -1;
+            igniting = false;
+        }
+    }
+
+    @EventHandler
+    private void onTick(TickEvent.Post event) {
+        if (mc.player == null || mc.world == null) return;
+        if (!useTickDelay.get()) return;
+        if (igniting) return;
+        if (ignitionQueue.isEmpty()) return;
+
+        List<IgnitionTask> readyList = new ArrayList<>();
+        Queue<IgnitionTask> updated = new LinkedList<>();
+
+        while (!ignitionQueue.isEmpty()) {
+            IgnitionTask task = ignitionQueue.poll();
+            int newTicks = task.ticksRemaining() - 1;
+            if (newTicks <= 0) {
+                readyList.add(task);
+            } else {
+                updated.add(new IgnitionTask(task.pos(), newTicks));
+            }
+        }
+
+        ignitionQueue.addAll(updated);
+
+        int flintSlot = InvUtils.findInHotbar(Items.FLINT_AND_STEEL).slot();
+        if (flintSlot == -1 || flintSlot == 40) {
+            error("Зажигалка не найдена в хотбаре!");
+            readyList.clear();
+            ignitionQueue.clear();
+            return;
+        }
+        for (IgnitionTask task : readyList) igniteNow(task.pos(), flintSlot);
+    }
+
+    private void igniteNow(BlockPos pos, int flint) {
+        if (mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(pos)) > reach.get()) return;
+        igniting = true;
+        int prevSlot = mc.player.getInventory().getSelectedSlot();
+        mc.player.getInventory().setSelectedSlot(flint);
+
+        Vec3d hitVec = Vec3d.ofCenter(pos);
+        BlockHitResult hit = new BlockHitResult(hitVec, Direction.UP, pos, false);
+        mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, hit);
+        mc.player.swingHand(Hand.MAIN_HAND);
+
+        mc.player.getInventory().setSelectedSlot(prevSlot);
+        igniting = false;
+    }
+}

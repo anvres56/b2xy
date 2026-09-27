@@ -1,0 +1,25 @@
+accessWidener	v2	named
+
+# Доступ к приватным полям Minecraft, которые раньше брались через
+# interface-миксины (@Accessor). Интерфейс-миксин над классом Mixin
+# отклоняет на старте: "@Mixin target type mismatch: ... is not an interface",
+# поэтому доступ вынесен в access widener - он не зависит от подтипа миксина
+# и не требует каста. Дескрипторы сверены с Yarn 1.21.11+build.6.
+#
+# PlayerInventory: инвентарь и выбранный слот
+accessible	field	net/minecraft/entity/player/PlayerInventory	main	Lnet/minecraft/util/collection/DefaultedList;
+accessible	field	net/minecraft/entity/player/PlayerInventory	selectedSlot	I
+
+# FireworkRocketEntity: время жизни и владелец (RocketBoost считает свои ракеты)
+accessible	field	net/minecraft/entity/projectile/FireworkRocketEntity	life	I
+accessible	field	net/minecraft/entity/projectile/FireworkRocketEntity	lifeTime	I
+accessible	field	net/minecraft/entity/projectile/FireworkRocketEntity	shooter	Lnet/minecraft/entity/LivingEntity;
+
+# ClientWorld: менеджер отложенных обновлений (NoWeb в режиме «Игнор» шлёт
+# STOP_DESTROY_BLOCK с инкрементом sequence). Метод package-private.
+accessible	method	net/minecraft/client/world/ClientWorld	getPendingUpdateManager	()Lnet/minecraft/client/network/PendingUpdateManager;
+
+# MobSpawnerLogic (в 1.21.x переехал из block.entity в block.spawner):
+# задержка спавна и пул мобов. ВНИМАНИЕ: тип - WeightedPool, а не Pool.
+accessible	field	net/minecraft/block/spawner/MobSpawnerLogic	spawnDelay	I
+accessible	field	net/minecraft/block/spawner/MobSpawnerLogic	spawnPotentials	Lnet/minecraft/util/collection/Pool;

@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "package": "com.b2xy.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "B2XYMixin",
+    "Fix2b2tGhostItemsMixin",
+    "Fix2b2tBundlesMixin",
+    "LivingEntityMixin",
+    "BetterF5CameraMixin",
+    "BetterF5JumpMixin",
+    "InputMixin",
+    "CrystalAuraTurboMixin",
+    "GameRendererMixin",
+    "InGameHudMixin",
+    "KeyBindingMixin",
+    "ClientPlayerEntityMixin",
+    "ClientPlayerInteractionManagerMixin",
+    "CobwebBlockMixin",
+    "MinecraftClientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
