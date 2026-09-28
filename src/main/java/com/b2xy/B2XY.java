@@ -60,7 +60,6 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new GrimVelocity());
         Modules.get().add(new RocketBoost());
         Modules.get().add(new NewChunks());
-        Modules.get().add(new AutoTnt());
         Modules.get().add(new AutoWither());
         Modules.get().add(new AutoXp());
         Modules.get().add(new NameTags());
