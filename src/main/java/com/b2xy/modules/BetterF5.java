@@ -170,7 +170,7 @@ public class BetterF5 extends Module {
         double d = this.distance.get();
         double h = this.height.get();
 
-        Vec3d pos = camera.getCameraPos();
+        Vec3d pos = camera.getPos();
         this.currentDistance = d;
         this.currentHeight = h;
         this.smoothX = pos.x;
@@ -275,7 +275,7 @@ public class BetterF5 extends Module {
     private void apply(Camera camera) {
         this.resultDistance = (float) this.currentDistance;
 
-        Vec3d pos = camera.getCameraPos();
+        Vec3d pos = camera.getPos();
         double targetX = pos.x;
         double targetY = pos.y + this.currentHeight;
         double targetZ = pos.z;

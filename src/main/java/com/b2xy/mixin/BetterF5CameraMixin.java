@@ -5,7 +5,7 @@ import meteordevelopment.meteorclient.systems.modules.Modules;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -51,7 +51,7 @@ public abstract class BetterF5CameraMixin {
     }
 
     @Inject(method = "update", at = @At("TAIL"))
-    private void b2xy$onCameraUpdate(World area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickProgress, CallbackInfo ci) {
+    private void b2xy$onCameraUpdate(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickProgress, CallbackInfo ci) {
         BetterF5 module = getBetterF5();
         if (module == null || !module.isActive()) {
             return;

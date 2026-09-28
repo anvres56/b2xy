@@ -18,8 +18,8 @@ import meteordevelopment.meteorclient.utils.render.RenderUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
@@ -618,8 +618,8 @@ public class NameTags extends Module {
 
     private void drawAvatar(DrawContext drawContext, PlayerEntity player, double x, double y, double size) {
         if (!(player instanceof AbstractClientPlayerEntity ap)) return;
-        Identifier skin = ap.getSkin().body().texturePath();
-        drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, skin, (int) x, (int) y, 8f, 8f, (int) size, (int) size, 8, 8, 64, 64);
+        Identifier skin = ap.getSkinTextures().texture();
+        drawContext.drawTexture(RenderLayer::getGuiTextured, skin, (int) x, (int) y, 8f, 8f, (int) size, (int) size, 8, 8, 64, 64);
     }
 
     private void drawVSep(double x, double cy, double height, Renderer2D renderer) {

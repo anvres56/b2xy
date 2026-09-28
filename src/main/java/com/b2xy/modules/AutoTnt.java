@@ -193,7 +193,7 @@ public class AutoTnt extends Module {
     }
 
     private void igniteNow(BlockPos pos, int flint) {
-        if (mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(pos)) > reach.get()) return;
+        if (mc.player.getPos().distanceTo(Vec3d.ofCenter(pos)) > reach.get()) return;
         igniting = true;
         int prevSlot = mc.player.getInventory().getSelectedSlot();
         mc.player.getInventory().setSelectedSlot(flint);

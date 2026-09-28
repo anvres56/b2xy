@@ -1,7 +1,7 @@
 package com.b2xy.modules;
 
 import com.b2xy.B2XY;
-import meteordevelopment.meteorclient.events.meteor.MouseClickEvent;
+import meteordevelopment.meteorclient.events.meteor.MouseButtonEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
@@ -125,9 +125,9 @@ public class AutoWither extends Module {
     }
 
     @EventHandler
-    private void onMouseButton(MouseClickEvent event) {
+    private void onMouseButton(MouseButtonEvent event) {
         if (mc.currentScreen != null) return;
-        if (event.button() != 1) return;
+        if (event.button != 1) return;
         if (isBuilding) return;
         if (event.action == KeyAction.Press) {
             event.cancel();

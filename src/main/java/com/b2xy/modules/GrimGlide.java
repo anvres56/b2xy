@@ -14,7 +14,7 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.MovementType;
-import net.minecraft.entity.EntityPosition;
+import net.minecraft.entity.player.PlayerPosition;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
@@ -175,7 +175,7 @@ public class GrimGlide extends Module {
     public void onActivate() {
         setbacks = 0;
         bps = 0.0;
-        lastPos = mc.player == null ? null : mc.player.getEntityPos();
+        lastPos = mc.player == null ? null : mc.player.getPos();
         if (mode.get() == Mode.Envelope) {
             reportEnvelope();
         }
@@ -236,10 +236,10 @@ public class GrimGlide extends Module {
             return;
         }
         if (lastPos != null) {
-            Vec3d delta = mc.player.getEntityPos().subtract(lastPos);
+            Vec3d delta = mc.player.getPos().subtract(lastPos);
             bps = Math.sqrt(delta.x * delta.x + delta.z * delta.z) * 20.0;
         }
-        lastPos = mc.player.getEntityPos();
+        lastPos = mc.player.getPos();
         if (!mc.player.isGliding()) {
             return;
         }
@@ -300,9 +300,9 @@ public class GrimGlide extends Module {
         if (!(packet instanceof PlayerPositionLookS2CPacket positionLook)) {
             return;
         }
-        EntityPosition changePacket = positionLook.change();
+        PlayerPosition changePacket = positionLook.change();
         Vec3d change = changePacket.position();
-        Vec3d current = mc.player.getEntityPos();
+        Vec3d current = mc.player.getPos();
         Set<PositionFlag> relatives = positionLook.relatives();
         Vec3d target = new Vec3d(
             relatives.contains(PositionFlag.X) ? current.x + change.x : change.x,

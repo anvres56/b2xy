@@ -176,7 +176,7 @@ public class RocketBoost extends Module {
     @Override
     public void onActivate() {
         lastMovement = mc.player == null ? Vec3d.ZERO : mc.player.getVelocity();
-        prevPos = mc.player == null ? null : mc.player.getEntityPos();
+        prevPos = mc.player == null ? null : mc.player.getPos();
         lastGlidePos = null;
         repositioned = false;
         windowOpen = false;
@@ -262,7 +262,7 @@ public class RocketBoost extends Module {
             prevPos = null;
             return;
         }
-        Vec3d pos = mc.player.getEntityPos();
+        Vec3d pos = mc.player.getPos();
         Vec3d travelled = prevPos == null ? Vec3d.ZERO : pos.subtract(prevPos);
         if (travelled.length() > MAX_PLAUSIBLE_MOVEMENT) {
             travelled = Vec3d.ZERO;
@@ -287,7 +287,7 @@ public class RocketBoost extends Module {
         if (mc.player == null || mc.world == null) {
             return null;
         }
-        Vec3d pos = mc.player.getEntityPos();
+        Vec3d pos = mc.player.getPos();
         Vec3d start = lastGlidePos == null ? oldVelocity : pos.subtract(lastGlidePos);
         boolean desynced = lastGlidePos != null && (repositioned || start.length() > MAX_PLAUSIBLE_MOVEMENT);
         repositioned = false;
@@ -546,7 +546,7 @@ public class RocketBoost extends Module {
     private FireworkRocketEntity findAttachedRocket() {
         FireworkRocketEntity best = null;
         int bestRemaining = Integer.MIN_VALUE;
-        Box box = new Box(mc.player.getEntityPos().subtract(64, 64, 64), mc.player.getEntityPos().add(64, 64, 64));
+        Box box = new Box(mc.player.getPos().subtract(64, 64, 64), mc.player.getPos().add(64, 64, 64));
         List<Entity> entities = mc.world.getOtherEntities(mc.player, box, e -> e instanceof FireworkRocketEntity);
         for (Entity entity : entities) {
             FireworkRocketEntity firework = (FireworkRocketEntity) entity;

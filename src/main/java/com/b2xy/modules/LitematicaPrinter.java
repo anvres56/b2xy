@@ -498,7 +498,7 @@ public class LitematicaPrinter extends Module {
             || this.mc.options.rightKey.isPressed()) {
             return true;
         }
-        // 1.21.11: player.input теперь Input; оверрайд движения идёт через InputAccessor (модульный миксин).
+        // 1.21.5: player.input — net.minecraft.client.input.Input; оверрайд движения идёт через InputAccessor (модульный миксин).
         Input input = this.mc.player.input;
         if (input instanceof InputAccessor in) {
             return Math.abs(in.getMovementForward()) > 1.0E-4f || Math.abs(in.getMovementSideways()) > 1.0E-4f;

@@ -17,15 +17,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Порт CobwebBlockMixin из leonware-клиента: в режиме «Игнор» модуля
  * {@link NoWeb} замедление в паутине отменяется полностью (HEAD + cancel).
  *
- * Сигнатура 1.21.11 сверена с рантайм-джаром:
+ * Сигнатура 1.21.5 сверена с рантайм-джаром:
  * {@code protected void onEntityCollision(BlockState, World, BlockPos, Entity,
- * EntityCollisionHandler, boolean)}.
+ * EntityCollisionHandler)} — без флага boolean, он появился позже.
  */
 @Mixin(CobwebBlock.class)
 public class CobwebBlockMixin {
     @Inject(method = "onEntityCollision", at = @At("HEAD"), cancellable = true)
     private void b2xy$onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity,
-                                       EntityCollisionHandler handler, boolean bl, CallbackInfo ci) {
+                                       EntityCollisionHandler handler, CallbackInfo ci) {
         if (NoWeb.isIgnoreActive() && entity == MinecraftClient.getInstance().player) {
             ci.cancel();
             NoWeb.onEntityCollideCobweb(pos);

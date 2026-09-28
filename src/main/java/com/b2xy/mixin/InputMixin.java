@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 /**
  * Порт InputMixin из BepHax NEW-SRC: оверрайд движения с нормализацией диагонали.
- * 1.21.11: Input.movementVector (Vec2f, x=боковое, y=вперёд).
+ * 1.21.5: Input.movementVector (Vec2f, x=боковое, y=вперёд).
  */
 @Mixin(value = Input.class)
 public abstract class InputMixin implements InputAccessor {
