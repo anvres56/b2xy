@@ -32,8 +32,10 @@ jobs:
             mc: '1.21.5'
           - branch: '1.21.4'
             mc: '1.21.4'
-          - branch: '26.2'
-            mc: '26.2'
+          # 26.2 в матрицы не входит: для 26.x не публикуются ни маппинги Yarn,
+          # ни ProGuard-маппинги Mojang (в version json 26.1/26.2 нет ключей
+          # client_mappings/server_mappings), а проект написан на Yarn. Подробности
+          # исследования - в коммитах ветки 26.2.
 
     steps:
       - name: Checkout Repository
@@ -90,7 +92,7 @@ jobs:
       - name: Проверить, что собраны все версии
         run: |
           set -euo pipefail
-          expected=6
+          expected=5
           actual=$(find jars -name '*.jar' | wc -l)
           echo "Скачано джаров: $actual, ожидалось: $expected"
           find jars -name '*.jar' -printf '%f\n' | sort
@@ -120,4 +122,3 @@ jobs:
             | 1.21.8 | `B2XY-1.21.8-*.jar` |
             | 1.21.5 | `B2XY-1.21.5-*.jar` |
             | 1.21.4 | `B2XY-1.21.4-*.jar` |
-            | 26.2 | `B2XY-26.2-*.jar` |
