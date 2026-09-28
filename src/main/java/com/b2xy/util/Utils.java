@@ -64,7 +64,7 @@ public class Utils {
             if (movedSlot != -1) {
                 mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
                 mc.player.swingHand(Hand.MAIN_HAND);
-                InvUtils.move().from(inv.getSelectedSlot()).to(movedSlot);
+                InvUtils.move().from(inv.selectedSlot).to(movedSlot);
                 return elytraSwapSlot != -1 ? elytraSwapSlot : 200;
             }
             return -1;

@@ -13,6 +13,13 @@ loom {
     // на access widener: Mixin отклоняет interface-миксин над классом
     // ("@Mixin target type mismatch: ... is not an interface").
     accessWidenerPath = file("src/main/resources/b2xy.accesswidener")
+
+    mixin {
+        // У meteor-client в fabric.mod.json нет mappings, поэтому legacy mixin AP
+        // не находит обфускационные отображения для миксинов по классам Meteor.
+        // С этой опцией Loom не генерирует refmap, а пишет имена прямо в байткод.
+        useLegacyMixinAp = false
+    }
 }
 
 repositories {

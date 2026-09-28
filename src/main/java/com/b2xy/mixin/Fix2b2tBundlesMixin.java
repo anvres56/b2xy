@@ -48,8 +48,8 @@ public abstract class Fix2b2tBundlesMixin {
     @Inject(method = "onInventory", at = @At("HEAD"))
     public void onInventory(InventoryS2CPacket packet, CallbackInfo info) {
         if (b2xy$onMainThread()) {
-            packet.contents().forEach(this::b2xy$fixBundle);
-            this.b2xy$fixBundle(packet.cursorStack());
+            packet.getContents().forEach(this::b2xy$fixBundle);
+            this.b2xy$fixBundle(packet.getCursorStack());
         }
     }
 

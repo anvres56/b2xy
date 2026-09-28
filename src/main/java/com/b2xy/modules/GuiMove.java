@@ -211,7 +211,7 @@ public class GuiMove extends Module {
 
     private boolean isPhysicallyPressed(KeyBinding key) {
         return this.mc.getWindow() != null
-            && InputUtil.isKeyPressed(this.mc.getWindow(), key.getDefaultKey().getCode());
+            && InputUtil.isKeyPressed(this.mc.getWindow().getHandle(), key.getDefaultKey().getCode());
     }
 
     private boolean hasMovement() {

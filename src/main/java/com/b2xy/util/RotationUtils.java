@@ -4,7 +4,7 @@ import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.entity.EntityPosition;
+import net.minecraft.entity.player.PlayerPosition;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
@@ -90,7 +90,7 @@ public class RotationUtils {
     public void onPacketReceive(PacketEvent.Receive event) {
         Packet<?> p = event.packet;
         if (p instanceof PlayerPositionLookS2CPacket packet) {
-            EntityPosition change = packet.change();
+            PlayerPosition change = packet.change();
             Set<PositionFlag> relatives = packet.relatives();
             this.serverYaw = relatives.contains(PositionFlag.Y_ROT) ? this.serverYaw + change.yaw() : change.yaw();
             this.serverPitch = relatives.contains(PositionFlag.X_ROT) ? this.serverPitch + change.pitch() : change.pitch();

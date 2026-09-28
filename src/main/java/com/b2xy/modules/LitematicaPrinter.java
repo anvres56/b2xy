@@ -98,7 +98,6 @@ public class LitematicaPrinter extends Module {
         Properties.PICKLES,
         Properties.EGGS,
         Properties.FLOWER_AMOUNT,
-        Properties.SEGMENT_AMOUNT
     };
 
     private Phase phase;
@@ -184,8 +183,6 @@ public class LitematicaPrinter extends Module {
                 Blocks.STRUCTURE_BLOCK,
                 Blocks.STRUCTURE_VOID,
                 Blocks.JIGSAW,
-                Blocks.TEST_BLOCK,
-                Blocks.TEST_INSTANCE_BLOCK,
                 Blocks.SPAWNER,
                 Blocks.TRIAL_SPAWNER,
                 Blocks.VAULT,

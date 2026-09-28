@@ -129,7 +129,7 @@ public class AutoTnt extends Module {
 
         if (ignitePos != null && !igniting && flintSlot == -1) {
             if (originalSlot == -1) {
-                originalSlot = mc.player.getInventory().getSelectedSlot();
+                originalSlot = mc.player.getInventory().selectedSlot;
             }
 
             flintSlot = InvUtils.findInHotbar(Items.FLINT_AND_STEEL).slot();
@@ -145,7 +145,7 @@ public class AutoTnt extends Module {
             return;
         }
 
-        if (ignitePos != null && !igniting && mc.player.getInventory().getSelectedSlot() == flintSlot) {
+        if (ignitePos != null && !igniting && mc.player.getInventory().selectedSlot == flintSlot) {
             igniting = true;
             Vec3d hitVec = Vec3d.ofCenter(ignitePos);
             BlockHitResult hit = new BlockHitResult(hitVec, Direction.UP, ignitePos, false);
@@ -193,9 +193,9 @@ public class AutoTnt extends Module {
     }
 
     private void igniteNow(BlockPos pos, int flint) {
-        if (mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(pos)) > reach.get()) return;
+        if (new Vec3d(mc.player.getX(), mc.player.getY(), mc.player.getZ()).distanceTo(Vec3d.ofCenter(pos)) > reach.get()) return;
         igniting = true;
-        int prevSlot = mc.player.getInventory().getSelectedSlot();
+        int prevSlot = mc.player.getInventory().selectedSlot;
         mc.player.getInventory().setSelectedSlot(flint);
 
         Vec3d hitVec = Vec3d.ofCenter(pos);

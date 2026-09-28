@@ -9,8 +9,8 @@
 
 | | |
 |---|---|
-| Minecraft | `1.21.11` |
-| Yarn | `1.21.11+build.3` |
+| Minecraft | `1.21.4` |
+| Yarn | `1.21.4+build.8` |
 | Fabric Loader | `0.18.2` |
 | Meteor Client | `1.21.11-SNAPSHOT` |
 | Java | `21` |

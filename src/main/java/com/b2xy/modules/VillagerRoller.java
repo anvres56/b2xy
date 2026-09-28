@@ -358,7 +358,7 @@ public class VillagerRoller extends Module {
         if (rollingVillager == null) return;
 
         // В 1.21.11 профессия лежит прямо в record VillagerData (без Optional).
-        if (rollingVillager.getVillagerData().profession().matchesKey(VillagerProfession.NONE)) {
+        if (rollingVillager.getVillagerData().getProfession().matchesKey(VillagerProfession.NONE)) {
             currentState = State.ROLLING_PLACING_BLOCK;
         }
     }
@@ -376,7 +376,7 @@ public class VillagerRoller extends Module {
             return;
         }
 
-        if (slot != this.mc.player.getInventory().getSelectedSlot()) {
+        if (slot != this.mc.player.getInventory().selectedSlot) {
             this.mc.player.getInventory().setSelectedSlot(slot);
         }
 
@@ -403,7 +403,7 @@ public class VillagerRoller extends Module {
 
         if (rollingVillager == null) return;
 
-        if (!rollingVillager.getVillagerData().profession().matchesKey(VillagerProfession.NONE)) {
+        if (!rollingVillager.getVillagerData().getProfession().matchesKey(VillagerProfession.NONE)) {
             currentState = State.ROLLING_WAITING_FOR_TRADES;
             triggerInteract();
         }

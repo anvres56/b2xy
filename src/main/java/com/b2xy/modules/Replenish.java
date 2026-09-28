@@ -20,6 +20,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.PotionItem;
+import net.minecraft.item.SwordItem;
 import net.minecraft.item.TridentItem;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
@@ -300,8 +301,8 @@ public class Replenish extends Module {
     }
 
     private boolean isWeapon(Item item) {
-        // Мечей как класса тоже не осталось: у клинкового оружия компонент WEAPON.
-        return item.getComponents().contains(DataComponentTypes.WEAPON)
+        // В 1.21.4 компонента WEAPON ещё нет — меч это обычный SwordItem.
+        return item instanceof SwordItem
             || item instanceof BowItem
             || item instanceof CrossbowItem
             || item instanceof TridentItem;
