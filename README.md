@@ -12,9 +12,9 @@
 | Minecraft | `1.21.10` |
 | Yarn | `1.21.10+build.3` |
 | Fabric Loader | `0.18.2` |
-| Meteor Client | `1.21.11-SNAPSHOT` |
+| Meteor Client | `1.21.10-SNAPSHOT` |
 | Java | `21` |
-| Baritone | `1.21.11-SNAPSHOT` |
+| Baritone | `1.21.10-SNAPSHOT` |
 
 ## Сборка / Build
 
@@ -24,8 +24,9 @@
 ./gradlew build
 ```
 
-Готовый аддон появляется в `build/libs/B2XY-0.1.0.jar`. Его нужно положить в папку
-`mods` рядом с Meteor Client и запустить игру.
+Готовый аддон появляется в `build/libs/B2XY-mc1.21.10-0.1.1.jar` (имя задаёт
+`archives_base_name` в `gradle.properties`). Его нужно положить в папку `mods`
+рядом с Meteor Client и запустить игру.
 
 При каждом пуше в `main` GitHub Actions собирает снапшот и выкладывает его как
 prerelease с тегом `snapshot` (`Assets` в релизе), так что свежую сборку можно не
