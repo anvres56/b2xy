@@ -2,19 +2,25 @@ package com.b2xy.mixin;
 
 import com.b2xy.accessor.InputAccessor;
 import net.minecraft.client.input.Input;
-import net.minecraft.util.math.Vec2f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 /**
  * Порт InputMixin из BepHax NEW-SRC: оверрайд движения с нормализацией диагонали.
- * 1.21.11: Input.movementVector (Vec2f, x=боковое, y=вперёд).
+ *
+ * В 1.21.4 у Input нет поля movementVector (оно появилось в 1.21.5+ вместе с
+ * переездом на Vec2f). Здесь два отдельных публичных поля:
+ * movementSideways (боковое) и movementForward (вперёд) - сверено javap -p
+ * net.minecraft.client.input.Input. Поэтому оверрайд пишем прямо в них.
  */
 @Mixin(value = Input.class)
 public abstract class InputMixin implements InputAccessor {
     @Shadow
-    protected Vec2f movementVector;
+    public float movementForward;
+
+    @Shadow
+    public float movementSideways;
 
     @Unique
     private float b2xy$overrideForward = Float.NaN;
@@ -26,7 +32,7 @@ public abstract class InputMixin implements InputAccessor {
         if (!Float.isNaN(this.b2xy$overrideForward)) {
             return this.b2xy$overrideForward;
         }
-        return this.movementVector != null ? this.movementVector.y : 0.0f;
+        return this.movementForward;
     }
 
     @Override
@@ -40,7 +46,7 @@ public abstract class InputMixin implements InputAccessor {
         if (!Float.isNaN(this.b2xy$overrideSideways)) {
             return this.b2xy$overrideSideways;
         }
-        return this.movementVector != null ? this.movementVector.x : 0.0f;
+        return this.movementSideways;
     }
 
     @Override
@@ -51,20 +57,19 @@ public abstract class InputMixin implements InputAccessor {
 
     @Unique
     private void applyOverrides() {
-        if (this.movementVector != null) {
-            float sideways = Float.isNaN(this.b2xy$overrideSideways) ? this.movementVector.x : this.b2xy$overrideSideways;
-            float forward = Float.isNaN(this.b2xy$overrideForward) ? this.movementVector.y : this.b2xy$overrideForward;
-            if (!Float.isNaN(this.b2xy$overrideSideways) && !Float.isNaN(this.b2xy$overrideForward)) {
-                float length = (float) Math.sqrt(sideways * sideways + forward * forward);
-                if (length > 1.0E-4) {
-                    sideways /= length;
-                    forward /= length;
-                }
+        float sideways = Float.isNaN(this.b2xy$overrideSideways) ? this.movementSideways : this.b2xy$overrideSideways;
+        float forward = Float.isNaN(this.b2xy$overrideForward) ? this.movementForward : this.b2xy$overrideForward;
+        if (!Float.isNaN(this.b2xy$overrideSideways) && !Float.isNaN(this.b2xy$overrideForward)) {
+            float length = (float) Math.sqrt(sideways * sideways + forward * forward);
+            if (length > 1.0E-4) {
+                sideways /= length;
+                forward /= length;
             }
-
-            this.movementVector = new Vec2f(sideways, forward);
-            this.b2xy$overrideForward = Float.NaN;
-            this.b2xy$overrideSideways = Float.NaN;
         }
+
+        this.movementSideways = sideways;
+        this.movementForward = forward;
+        this.b2xy$overrideForward = Float.NaN;
+        this.b2xy$overrideSideways = Float.NaN;
     }
 }

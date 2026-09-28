@@ -18,8 +18,8 @@ import meteordevelopment.meteorclient.utils.render.RenderUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
@@ -32,6 +32,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3d;
 
 import java.util.ArrayList;
@@ -443,7 +444,11 @@ public class NameTags extends Module {
             drawVSep(x, centerY, sepH, renderer);
         }
 
-        renderer.render();
+        // В 1.21.4 Renderer2D#render принимает DrawContext, но внутри блока
+        // NametagUtils.begin/end матрица уже лежит в глобальном ModelViewStack,
+        // поэтому DrawContext сюда не подкладываем (иначе трансформация применится
+        // дважды) - ровно так же делает сам Meteor в Nametags#drawBg.
+        renderer.render(null);
 
         double ax = left + padX;
         double ay = centerY - iconSize / 2;
@@ -458,7 +463,7 @@ public class NameTags extends Module {
         fillCornerCutout(cutRenderer, ax + iconSize, ay, ax + iconSize - arc, cy, arc, Math.PI * 1.5, Math.PI * 2, fill);
         fillCornerCutout(cutRenderer, ax, ay + iconSize, cx, ay + iconSize - arc, arc, Math.PI * 0.5, Math.PI, fill);
         fillCornerCutout(cutRenderer, ax + iconSize, ay + iconSize, ax + iconSize - arc, ay + iconSize - arc, arc, 0, Math.PI * 0.5, fill);
-        cutRenderer.render();
+        cutRenderer.render(null);
 
         x = left + padX + iconSize + sepGap + 1 + sepGap;
 
@@ -536,7 +541,7 @@ public class NameTags extends Module {
         drawVSep(x, centerY, sepH, renderer);
         x += 1 + sepGap;
         drawHeart(x, centerY - 0.7 * s, iconsFs, COLOR_ACCENT);
-        renderer.render();
+        renderer.render(null);
 
         text.begin(bodyFs, false, true);
         text.render(name, left + padX, textY, COLOR_WHITE, true);
@@ -578,7 +583,7 @@ public class NameTags extends Module {
         Renderer2D renderer = Renderer2D.COLOR;
         renderer.begin();
         drawRoundedRect(renderer, left, top, w, h, 6 * s, COLOR_FILL, COLOR_BORDER, 0.5);
-        renderer.render();
+        renderer.render(null);
 
         RenderUtils.drawItem(drawContext, stack, (int) (left + padX), (int) (centerY - iconSize / 2), (float) (iconSize / 16.0), true);
 
@@ -618,8 +623,16 @@ public class NameTags extends Module {
 
     private void drawAvatar(DrawContext drawContext, PlayerEntity player, double x, double y, double size) {
         if (!(player instanceof AbstractClientPlayerEntity ap)) return;
-        Identifier skin = ap.getSkin().body().texturePath();
-        drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, skin, (int) x, (int) y, 8f, 8f, (int) size, (int) size, 8, 8, 64, 64);
+        // В 1.21.4 у AbstractClientPlayerEntity есть getSkinTextures() (не getSkin()),
+        // а SkinTextures - плоская запись с полем texture() (не body().texturePath()).
+        Identifier skin = ap.getSkinTextures().texture();
+        // В 1.21.4 нет RenderPipelines: DrawContext#drawTexture принимает
+        // Function<Identifier, RenderLayer>, и RenderLayer#getGuiTextured - это
+        // ровно тот слой, который в 1.21.5+ стал пайплайном GUI_TEXTURED
+        // (сверено: javap -c RenderLayer#getGuiTextured зовёт статическое
+        // поле GUI_TEXTURED : Function).
+        drawContext.drawTexture(RenderLayer::getGuiTextured, skin, (int) x, (int) y,
+            8f, 8f, (int) size, (int) size, 8, 8, 64, 64);
     }
 
     private void drawVSep(double x, double cy, double height, Renderer2D renderer) {
@@ -721,10 +734,12 @@ public class NameTags extends Module {
     }
 
     private static Vector3d getPos(Entity entity, float tickDelta) {
-        double x = MathHelper.lerp(tickDelta, entity.lastX, entity.getX());
-        double y = MathHelper.lerp(tickDelta, entity.lastY, entity.getY());
-        double z = MathHelper.lerp(tickDelta, entity.lastZ, entity.getZ());
-        return new Vector3d(x, y + entity.getHeight() + 0.3, z);
+        // В 1.21.11 поле называлось lastX/lastY/lastZ, в 1.21.4 - prevX/prevY/prevZ,
+        // и оно приватно для внешнего кода. Entity#getLerpedPos(float) делает ровно
+        // то же самое: MathHelper.lerp(tickDelta, prevX, getX()) и т.д. (сверено
+        // javap -c net.minecraft.entity.Entity#getLerpedPos).
+        Vec3d lerped = entity.getLerpedPos(tickDelta);
+        return new Vector3d(lerped.x, lerped.y + entity.getHeight() + 0.3, lerped.z);
     }
 
     private static List<ItemStack> getArmor(PlayerEntity player) {

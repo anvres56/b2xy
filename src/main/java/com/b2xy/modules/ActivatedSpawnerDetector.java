@@ -28,7 +28,7 @@ import net.minecraft.block.spawner.MobSpawnerEntry;
 import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.collection.Pool;
+import net.minecraft.util.collection.DataPool;
 import net.minecraft.util.collection.Weighted;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -488,13 +488,17 @@ public class ActivatedSpawnerDetector extends Module {
 
     /** Тип моба из пула потенциальных спавнов (nextSpawnData в 1.21.11 больше нет). */
     private String monsterId(MobSpawnerBlockEntity spawner) {
-        Pool<MobSpawnerEntry> pool = spawner.getLogic().spawnPotentials;
+        // В 1.21.4 поле spawnPotentials имеет тип DataPool (в 1.21.11 был WeightedPool),
+        // а DataPool<E> расширяет Pool<Weighted.Present<E>>: элементы пула — записи
+        // Weighted.Present<T> с методом data(), а не генерный Weighted<T> со value().
+        DataPool<MobSpawnerEntry> pool = spawner.getLogic().spawnPotentials;
         if (pool == null || pool.isEmpty()) return null;
 
-        for (Weighted<MobSpawnerEntry> weighted : pool.getEntries()) {
-            NbtCompound nbt = weighted.value().entity();
+        for (Weighted.Present<MobSpawnerEntry> weighted : pool.getEntries()) {
+            NbtCompound nbt = weighted.data().entity();
             if (nbt == null) continue;
-            String id = nbt.getString("id", "");
+            // NbtCompound#getString(String) — единственный вариант в 1.21.4.
+            String id = nbt.getString("id");
             if (!id.isEmpty()) return id;
         }
 

@@ -4,7 +4,7 @@ accessWidener	v2	named
 # interface-миксины (@Accessor). Интерфейс-миксин над классом Mixin
 # отклоняет на старте: "@Mixin target type mismatch: ... is not an interface",
 # поэтому доступ вынесен в access widener - он не зависит от подтипа миксина
-# и не требует каста. Дескрипторы сверены с Yarn 1.21.11+build.6.
+# и не требует каста. Дескрипторы сверены с Yarn 1.21.4+build.8.
 #
 # PlayerInventory: инвентарь и выбранный слот
 accessible	field	net/minecraft/entity/player/PlayerInventory	main	Lnet/minecraft/util/collection/DefaultedList;
@@ -20,6 +20,9 @@ accessible	field	net/minecraft/entity/projectile/FireworkRocketEntity	shooter	Ln
 accessible	method	net/minecraft/client/world/ClientWorld	getPendingUpdateManager	()Lnet/minecraft/client/network/PendingUpdateManager;
 
 # MobSpawnerLogic (в 1.21.x переехал из block.entity в block.spawner):
-# задержка спавна и пул мобов. ВНИМАНИЕ: тип - WeightedPool, а не Pool.
+# задержка спавна и пул мобов. ВНИМАНИЕ: в 1.21.4 тип поля - DataPool
+# (в 1.21.11 был WeightedPool); DataPool<E> расширяет Pool<Weighted.Present<E>>,
+# а Weighted сам по себе НЕ генерный - запись веса это Weighted.Present<T>
+# с полем data(). Дескриптор сверен по mappings 1.21.4 (field_9152 -> Lbqt;).
 accessible	field	net/minecraft/block/spawner/MobSpawnerLogic	spawnDelay	I
-accessible	field	net/minecraft/block/spawner/MobSpawnerLogic	spawnPotentials	Lnet/minecraft/util/collection/Pool;
+accessible	field	net/minecraft/block/spawner/MobSpawnerLogic	spawnPotentials	Lnet/minecraft/util/collection/DataPool;

@@ -13,13 +13,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * ElytraBounce: подмена isPressed для клавиш вперёд/прыжка, пока bounce активен
- * (порт из BepHax NEW-SRC; 1.21.11 — KeyBinding.isPressed()/getId()).
+ * (порт из BepHax NEW-SRC).
+ *
+ * В 1.21.4 у KeyBinding поле называется translationKey (метода getId() ещё нет:
+ * он появился в 1.21.5+), поэтому @Shadow именно на translationKey. Строки
+ * "key.forward"/"key.jump" - это и есть translation key в 1.21.4.
  */
 @Mixin(KeyBinding.class)
 public abstract class KeyBindingMixin {
     @Shadow
     @Final
-    private String id;
+    private String translationKey;
 
     @Unique
     private ElytraBounce efly = null;
@@ -31,9 +35,9 @@ public abstract class KeyBindingMixin {
                 this.efly = Modules.get().get(ElytraBounce.class);
             }
             if (this.efly != null && this.efly.isActive() && this.efly.enabled()) {
-                if (this.id.equals("key.forward")) {
+                if (this.translationKey.equals("key.forward")) {
                     cir.setReturnValue(true);
-                } else if (this.id.equals("key.jump") && this.efly.shouldAutoJump()) {
+                } else if (this.translationKey.equals("key.jump") && this.efly.shouldAutoJump()) {
                     cir.setReturnValue(this.efly.isJumpKeyForcedDown());
                 }
             }
