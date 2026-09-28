@@ -1,0 +1,123 @@
+name: Release All Versions
+
+# Один релиз со сборками под все версии Minecraft: матрица собирает каждую
+# ветку отдельно, последний шаг склеивает все джары в один релиз.
+# Ветка -> версия Minecraft зашита в матрицу, чтобы имена файлов в релизе
+# не совпадали: B2XY-1.21.11-0.1.2.jar, B2XY-1.21.8-0.1.2.jar и так далее.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Сборка ${{ matrix.mc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Имена веток и версии в кавычках: без них YAML считает 1.21.10 числом,
+          # и checkout получит несуществующую ветку 1.21 вместо 1.21.10.
+          - branch: 'main'
+            mc: '1.21.11'
+          - branch: '1.21.10'
+            mc: '1.21.10'
+          - branch: '1.21.8'
+            mc: '1.21.8'
+          - branch: '1.21.5'
+            mc: '1.21.5'
+          - branch: '1.21.4'
+            mc: '1.21.4'
+          - branch: '26.2'
+            mc: '26.2'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          persist-credentials: false
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Собрать имя файла с версией Minecraft
+        run: |
+          set -euo pipefail
+          version=$(grep -E '^mod-version = "' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
+          mkdir -p dist
+          for jar in build/libs/*.jar; do
+            cp "$jar" "dist/B2XY-${{ matrix.mc }}-${version}.jar"
+          done
+          ls -la dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: b2xy-${{ matrix.mc }}
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: Публикация релиза
+    needs: build
+    # always(): релиз должен либо собраться целиком, либо упасть с внятной
+    # ошибкой. Молча публиковать неполный релиз нельзя — шаг проверки ниже
+    # сравнивает число джаров с числом версий в матрице.
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Скачать все сборки
+        uses: actions/download-artifact@v4
+        with:
+          pattern: b2xy-*
+          path: jars
+          merge-multiple: true
+
+      - name: Проверить, что собраны все версии
+        run: |
+          set -euo pipefail
+          expected=6
+          actual=$(find jars -name '*.jar' | wc -l)
+          echo "Скачано джаров: $actual, ожидалось: $expected"
+          find jars -name '*.jar' -printf '%f\n' | sort
+          if [ "$actual" -ne "$expected" ]; then
+            echo "::error::Собрано $actual из $expected версий. Релиз не публикуется, чтобы в нём не оказалось не всех сборок."
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: B2XY ${{ github.ref_name }}
+          files: |
+            jars/*.jar
+          fail_on_unmatched_files: true
+          body: |
+            Сборки аддона под все поддерживаемые версии Minecraft.
+
+            Требуется Meteor Client для **той же** версии Minecraft и Java 21.
+            Файл кладётся в папку `mods` рядом с Meteor Client.
+
+            | Minecraft | Файл |
+            |---|---|
+            | 1.21.11 | `B2XY-1.21.11-*.jar` |
+            | 1.21.10 | `B2XY-1.21.10-*.jar` |
+            | 1.21.8 | `B2XY-1.21.8-*.jar` |
+            | 1.21.5 | `B2XY-1.21.5-*.jar` |
+            | 1.21.4 | `B2XY-1.21.4-*.jar` |
+            | 26.2 | `B2XY-26.2-*.jar` |
