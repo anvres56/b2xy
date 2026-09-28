@@ -1,0 +1,106 @@
+name: Release Single Version
+
+# Релиз только под одну версию Minecraft. Нужен, когда сборки под остальные
+# версии ещё не портированы: публиковать их нельзя, в них живёт код,
+# который ломает игру (например, модуль с id, совпадающим со встроенным
+# модулем Meteor, из-за чего Modules.add() вытесняет чужой экземпляр).
+#
+# Тег вида v0.1.4-mc1.21.11. Матричный release-all.yml на такие теги
+# не реагирует: у него исключение '!v*-mc*' в списке tags.
+on:
+  push:
+    tags:
+      - 'v*-mc*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Сборка ${{ matrix.mc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - branch: 'main'
+            mc: '1.21.11'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          persist-credentials: false
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Собрать имя файла с версией Minecraft
+        run: |
+          set -euo pipefail
+          version=$(grep -E '^mod-version = "' gradle/libs.versions.toml | head -1 | cut -d'"' -f2)
+          mkdir -p dist
+          for jar in build/libs/*.jar; do
+            cp "$jar" "dist/B2XY-${{ matrix.mc }}-${version}.jar"
+          done
+          ls -la dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: b2xy-${{ matrix.mc }}
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: Публикация релиза
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Скачать сборку
+        uses: actions/download-artifact@v4
+        with:
+          pattern: b2xy-*
+          path: jars
+          merge-multiple: true
+
+      - name: Проверить, что джар ровно один
+        run: |
+          set -euo pipefail
+          expected=1
+          actual=$(find jars -name '*.jar' | wc -l)
+          echo "Скачано джаров: $actual, ожидалось: $expected"
+          find jars -name '*.jar' -printf '%f\n' | sort
+          if [ "$actual" -ne "$expected" ]; then
+            echo "::error::Собрано $actual из $expected. Релиз не публикуется."
+            exit 1
+          fi
+
+      - name: Создать GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: B2XY ${{ github.ref_name }}
+          files: |
+            jars/*.jar
+          fail_on_unmatched_files: true
+          body: |
+            Сборка аддона **только под Minecraft 1.21.11**.
+
+            Остальные версии в этот релиз не входят: порт под них ещё не доведён,
+            и в промежуточных сборках остаётся код, ломающий игру. Не берите эти
+            версии из этого релиза — дождитесь отдельного.
+
+            Требуется Meteor Client для 1.21.11 и Java 21.
+            Файл кладётся в папку `mods` рядом с Meteor Client.
