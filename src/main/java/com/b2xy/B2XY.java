@@ -24,7 +24,6 @@ import com.b2xy.modules.InvFix2b2t;
 import com.b2xy.modules.NameTags;
 import com.b2xy.modules.NoHurtCam;
 import com.b2xy.modules.NoJumpDelay;
-import com.b2xy.modules.NofallVanilla;
 import com.b2xy.modules.NoWeb;
 import com.b2xy.modules.Pitch40;
 import com.b2xy.modules.Replenish;
@@ -55,7 +54,6 @@ public class B2XY extends MeteorAddon {
         // Modules
         Modules.get().add(new AutoTnt());
         Modules.get().add(new NoJumpDelay());
-        Modules.get().add(new NofallVanilla());
         Modules.get().add(new GrimGlide());
         Modules.get().add(new GrimVelocity());
         Modules.get().add(new RocketBoost());
