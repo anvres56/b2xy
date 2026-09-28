@@ -17,6 +17,7 @@ import com.b2xy.modules.ElytraRecast;
 import com.b2xy.modules.ElytraSwap;
 import com.b2xy.modules.GrimAirPlace;
 import com.b2xy.modules.GrimGlide;
+import com.b2xy.modules.HandChams;
 import com.b2xy.modules.HoleSnap;
 import com.b2xy.modules.GrimVelocity;
 import com.b2xy.modules.NewChunks;
@@ -80,6 +81,7 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new Replenish());
         Modules.get().add(new GrimAirPlace());
         Modules.get().add(new StashSorter());
+        Modules.get().add(new HandChams());
 
         // Commands
         Commands.add(new ExampleCommand());

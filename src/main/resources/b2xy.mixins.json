@@ -17,7 +17,9 @@
     "ClientPlayerEntityMixin",
     "ClientPlayerInteractionManagerMixin",
     "CobwebBlockMixin",
-    "MinecraftClientMixin"
+    "MinecraftClientMixin",
+    "HeldItemRendererMixin",
+    "ItemRenderStateLayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
