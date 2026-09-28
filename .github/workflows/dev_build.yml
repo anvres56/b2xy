@@ -1,4 +1,4 @@
-name: Publish Development Build
+name: Build Dev Artifact
 on: push
 
 # У новых репозиториев GITHUB_TOKEN по умолчанию только на чтение, а шаг Release
@@ -28,12 +28,14 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      # Релизы создаёт только release-all.yml: он собирает все версии и
+      # публикует их одним релизом. Этот воркфлоу лишь проверяет, что ветка
+      # собирается, и отдаёт джар как артефакт Actions — иначе каждый пуш
+      # добавлял бы файл в prerelease "snapshot" и там копились сборки
+      # разных версий с неразличимыми именами.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: snapshot
-          name: Dev Build
-          prerelease: true
-          files: |
-            ./build/libs/*.jar
+          name: dev-build-${{ github.sha }}
+          path: build/libs/*.jar
+          if-no-files-found: error
