@@ -2,7 +2,6 @@ package com.b2xy.modules;
 
 import com.b2xy.B2XY;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.settings.BlockListSetting;
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.EnumSetting;
 import meteordevelopment.meteorclient.settings.IntSetting;
@@ -61,10 +60,14 @@ import java.util.List;
  *   <li>{@code PlayerEntity.closeHandledScreen()} в 1.21.11 protected, поэтому
  *       окно закрывается через публичный {@code Screen.close()};</li>
  *   <li>{@code Slot.getSlot(int)} у {@code HandledScreen} больше нет, слоты берутся
- *       из публичного поля {@code ScreenHandler.slots};</li>
- *   <li>для списка блоков используется {@code BlockListSetting} из Meteor, чтобы
- *       можно было выбирать сундук/бочку прямо в настройках.</li>
+ *       из публичного поля {@code ScreenHandler.slots}.</li>
  * </ul>
+ *
+ * <h2>Почему переключатели, а не список блоков</h2>
+ * Список блоков в Meteor открывает отдельный экран выбора, и выйти из него штатной
+ * клавишей выхода получается не всегда. Здесь вместо него три обычных
+ * переключателя прямо в настройках модуля — экран выбора не появляется вовсе.
+ * Цена отказа: выбрать произвольный блок нельзя, только эти три типа.
  */
 public class StashSorter extends Module {
     /** Что делать с содержимым. */
@@ -79,10 +82,24 @@ public class StashSorter extends Module {
 
     private final SettingGroup sgBlocks = settings.getDefaultGroup();
 
-    private final Setting<List<Block>> blocks = sgBlocks.add(new BlockListSetting.Builder()
-        .name("блоки")
-        .description("Какие блоки модуль открывает сам, когда на них наведён прицел.")
-        .defaultValue(Blocks.CHEST, Blocks.BARREL, Blocks.SHULKER_BOX)
+    private final Setting<Boolean> chests = sgBlocks.add(new BoolSetting.Builder()
+        .name("сундуки")
+        .description("Открывать обычные и запертые сундуки под прицелом.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Boolean> barrels = sgBlocks.add(new BoolSetting.Builder()
+        .name("бочки")
+        .description("Открывать бочки под прицелом.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Boolean> shulkers = sgBlocks.add(new BoolSetting.Builder()
+        .name("шалкеры")
+        .description("Открывать шалкерные коробки под прицелом — на 2b2t это и есть стеши.")
+        .defaultValue(true)
         .build()
     );
 
@@ -231,8 +248,7 @@ public class StashSorter extends Module {
         if (this.waitStill.get() && isMoving()) return;
         if (!(this.mc.crosshairTarget instanceof BlockHitResult hit)) return;
 
-        Block block = this.mc.world.getBlockState(hit.getBlockPos()).getBlock();
-        if (!this.blocks.get().contains(block)) return;
+        if (!isAllowed(this.mc.world.getBlockState(hit.getBlockPos()).getBlock())) return;
 
         ActionResult result = this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, hit);
         if (!result.isAccepted()) return;
@@ -313,6 +329,14 @@ public class StashSorter extends Module {
         lastClickAt = now;
         this.mc.interactionManager.clickSlot(handler.syncId, slot.id, 0, SlotActionType.QUICK_MOVE, this.mc.player);
         return true;
+    }
+
+    /** Разрешён ли этот блок переключателями выше. */
+    private boolean isAllowed(Block block) {
+        if (block == Blocks.CHEST && this.chests.get()) return true;
+        if (block == Blocks.BARREL && this.barrels.get()) return true;
+        if (block == Blocks.SHULKER_BOX && this.shulkers.get()) return true;
+        return false;
     }
 
     private boolean isMoving() {
