@@ -2,6 +2,7 @@ package com.b2xy.mixin;
 
 import com.b2xy.modules.BepMine;
 import com.b2xy.util.RotationUtils;
+import com.b2xy.util.tracker.ContainerIndexRecorder;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -33,6 +34,13 @@ public abstract class ClientPlayerInteractionManagerMixin {
     private float b2xy$useItemPitch(float original) {
         RotationUtils rotations = RotationUtils.getInstance();
         return !rotations.isRotating() && !rotations.isWireFresh() ? original : rotations.getSentPitch();
+    }
+
+    @Inject(method = "interactBlock", at = @At("HEAD"))
+    private void b2xy$captureContainerPos(net.minecraft.client.network.ClientPlayerEntity player, net.minecraft.util.Hand hand, net.minecraft.util.hit.BlockHitResult hitResult, CallbackInfoReturnable<net.minecraft.util.ActionResult> cir) {
+        // Индексу контейнеров нужен блок, который открывают: обработчик контейнера
+        // в 1.21.11 координаты не хранит, а наведение к моменту открытия не гарантировано
+        if (hitResult != null) ContainerIndexRecorder.onBlockInteract(hitResult.getBlockPos());
     }
 
     @Inject(method = "updateBlockBreakingProgress", at = @At("HEAD"), cancellable = true)

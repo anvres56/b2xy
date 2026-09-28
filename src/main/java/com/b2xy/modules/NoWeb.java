@@ -3,7 +3,6 @@ package com.b2xy.modules;
 import com.b2xy.B2XY;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.BoolSetting;
-import meteordevelopment.meteorclient.settings.DoubleSetting;
 import meteordevelopment.meteorclient.settings.EnumSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
@@ -28,9 +27,11 @@ import net.minecraft.util.math.Vec2f;
  * Три режима:
  * <ul>
  *   <li>{@code Фиксированный} — в паутине каждый тик обнуляется горизонтальная
- *       скорость, вертикальная ровно {@code 0.995} (вверх/вниз по jump/sneak),
- *       горизонтальная {@code 0.19175} по направлению ввода;</li>
- *   <li>{@code Кастомный} — то же, но обе скорости берутся из настроек;</li>
+ *       скорость, вертикальная ровно {@link #VERTICAL_SPEED} (вверх/вниз по
+ *       jump/sneak), горизонтальная {@link #HORIZONTAL_SPEED} по направлению
+ *       ввода. Скорости заданы константой и не вынесены в настройки;</li>
+ *   <li>{@code Кастомный} — оставлен ради совместимости со старыми конфигами,
+ *       работает как {@code Фиксированный};</li>
  *   <li>{@code Игнор} — миксин в {@code CobwebBlock#onEntityCollision} вообще
  *       отменяет замедление паутины (режим {@code Grim} дополнительно шлёт
  *       {@code STOP_DESTROY_BLOCK} с инкрементом sequence, чтобы сервер тоже
@@ -50,34 +51,18 @@ import net.minecraft.util.math.Vec2f;
 public class NoWeb extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
+    /**
+     * Скорости подобраны замером и намеренно не вынесены в настройки:
+     * старое значение 0.19175/0.995 подхватывалось из modules.nbt и ломало
+     * разгон в паутине. Числа заданы константой — поменять можно только кодом.
+     */
+    private static final double HORIZONTAL_SPEED = 0.64045;
+    private static final double VERTICAL_SPEED = 1.27927;
+
     private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
         .name("режим")
-        .description("Фиксированный: константные 0.995/0.19175. Кастомный: скорости из настроек. Игнор: полностью отменить замедление в паутине миксином.")
+        .description("Фиксированный: скорости заданы константой (горизонталь " + HORIZONTAL_SPEED + ", вертикаль " + VERTICAL_SPEED + "). Кастомный: работает так же, настройки убраны. Игнор: полностью отменить замедление в паутине миксином.")
         .defaultValue(Mode.Фиксированный)
-        .build());
-
-    private final Setting<Double> customHorizontalSpeed = sgGeneral.add(new DoubleSetting.Builder()
-        .name("горизонтальная-скорость")
-        .description("Горизонтальная скорость в режиме «Кастомный» (шаг 0.001).")
-        .defaultValue(0.19175)
-        .min(0.01)
-        .max(1.5)
-        .sliderMin(0.01)
-        .sliderMax(1.5)
-        .decimalPlaces(5)
-        .visible(() -> this.mode.get() == Mode.Кастомный)
-        .build());
-
-    private final Setting<Double> customVerticalSpeed = sgGeneral.add(new DoubleSetting.Builder()
-        .name("вертикальная-скорость")
-        .description("Вертикальная скорость в режиме «Кастомный» (шаг 0.001).")
-        .defaultValue(0.995)
-        .min(0.01)
-        .max(1.5)
-        .sliderMin(0.01)
-        .sliderMax(1.5)
-        .decimalPlaces(5)
-        .visible(() -> this.mode.get() == Mode.Кастомный)
         .build());
 
     private final Setting<Boolean> grim = sgGeneral.add(new BoolSetting.Builder()
@@ -142,18 +127,15 @@ public class NoWeb extends Module {
 
         if (!isInWeb()) return;
 
-        double verticalSpeed = this.mode.get() == Mode.Кастомный ? this.customVerticalSpeed.get() : 0.995;
-        double horizontalSpeed = this.mode.get() == Mode.Кастомный ? this.customHorizontalSpeed.get() : 0.19175;
-
         double targetY = 0.0;
         if (this.mc.options.jumpKey.isPressed()) {
-            targetY = verticalSpeed;
+            targetY = VERTICAL_SPEED;
         } else if (this.mc.options.sneakKey.isPressed()) {
-            targetY = -verticalSpeed;
+            targetY = -VERTICAL_SPEED;
         }
 
         this.mc.player.setVelocity(0.0, targetY, 0.0);
-        setSpeed(horizontalSpeed);
+        setSpeed(HORIZONTAL_SPEED);
     }
 
     /** Обход-прыжком: не спринтовать, пока в воздухе рядом с паутиной. */

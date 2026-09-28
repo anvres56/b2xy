@@ -1,6 +1,7 @@
 package com.b2xy;
 
 import com.b2xy.commands.ExampleCommand;
+import com.b2xy.commands.SorterCommand;
 import com.b2xy.hud.CrystalCpsHud;
 import com.b2xy.hud.ExampleHud;
 import com.b2xy.modules.AutoTnt;
@@ -8,6 +9,8 @@ import com.b2xy.modules.AutoWither;
 import com.b2xy.modules.AutoXp;
 import com.b2xy.modules.BepMine;
 import com.b2xy.modules.BetterF5;
+import com.b2xy.modules.ContainerIndex;
+import com.b2xy.modules.ContainerTooltips;
 import com.b2xy.modules.CrystalAuraTurbo;
 import com.b2xy.modules.ElytraBounce;
 import com.b2xy.modules.ElytraRecast;
@@ -53,7 +56,6 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new AutoTnt());
         Modules.get().add(new NoJumpDelay());
         Modules.get().add(new NofallVanilla());
-        Modules.get().add(new StashSorter());
         Modules.get().add(new GrimGlide());
         Modules.get().add(new GrimVelocity());
         Modules.get().add(new RocketBoost());
@@ -65,6 +67,8 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new BetterF5());
         Modules.get().add(new InvFix2b2t());
         Modules.get().add(new CrystalAuraTurbo());
+        Modules.get().add(new ContainerIndex());
+        Modules.get().add(new ContainerTooltips());
         Modules.get().add(new BepMine());
         Modules.get().add(new NoHurtCam());
         Modules.get().add(new ElytraBounce());
@@ -78,9 +82,11 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new HoleSnap());
         Modules.get().add(new Replenish());
         Modules.get().add(new GrimAirPlace());
+        Modules.get().add(new StashSorter());
 
         // Commands
         Commands.add(new ExampleCommand());
+        Commands.add(new SorterCommand());
 
         // HUD
         Hud.get().register(ExampleHud.INFO);
