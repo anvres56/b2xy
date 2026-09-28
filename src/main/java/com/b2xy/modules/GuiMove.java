@@ -83,7 +83,14 @@ public class GuiMove extends Module {
     private Screen lastScreen;
 
     public GuiMove() {
-        super(B2XY.CATEGORY, "gui-move", "Ходьба и спринт при открытом инвентаре.");
+        // ID обязательно уникальный: у Meteor есть встроенный модуль с ID "gui-move".
+        // При регистрации модуля Meteor вытесняет из реестра любой чужой модуль с
+        // таким же ID, и встроенный GUIMove пропадает. После этого его же миксин в
+        // Screen.onKeyPressed делает Modules.get().get(GUIMove.class) и получает null -
+        // а падение происходит на КАЖДОМ нажатии клавиши, то есть не работает весь
+        // ввод в игре. Проверено на практике: в логе падает NullPointerException
+        // "Cannot invoke GUIMove.disableArrows() because guiMove is null".
+        super(B2XY.CATEGORY, "gui-move-b2xy", "Ходьба и спринт при открытом инвентаре.");
     }
 
     @Override
