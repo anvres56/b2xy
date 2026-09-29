@@ -23,7 +23,8 @@
     "PlayerEntityPoseMixin",
     "ElytraFeatureRendererMixin",
     "LivingEntityRendererLyingMixin",
-    "PlayerEntityRendererChestplateMixin"
+    "PlayerEntityRendererChestplateMixin",
+    "PlayerEntityRendererStandingMixin"
   ],
   "injectors": {
     "defaultRequire": 1
