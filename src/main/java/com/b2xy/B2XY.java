@@ -1,6 +1,7 @@
 package com.b2xy;
 
 import com.b2xy.commands.ExampleCommand;
+import com.b2xy.commands.MoverCommand;
 import com.b2xy.commands.SorterCommand;
 import com.b2xy.hud.CrystalCpsHud;
 import com.b2xy.hud.ExampleHud;
@@ -30,6 +31,7 @@ import com.b2xy.modules.Pitch40;
 import com.b2xy.modules.Replenish;
 import com.b2xy.modules.LitematicaPrinter;
 import com.b2xy.modules.RocketBoost;
+import com.b2xy.modules.StashMover;
 import com.b2xy.modules.StashSorter;
 import com.b2xy.modules.VillagerRoller;
 import com.b2xy.modules.ActivatedSpawnerDetector;
@@ -82,10 +84,12 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new GrimAirPlace());
         Modules.get().add(new StashSorter());
         Modules.get().add(new HandChams());
+        Modules.get().add(new StashMover());
 
         // Commands
         Commands.add(new ExampleCommand());
         Commands.add(new SorterCommand());
+        Commands.add(new MoverCommand());
 
         // HUD
         Hud.get().register(ExampleHud.INFO);
