@@ -206,6 +206,14 @@ public class StashSorter extends Module {
         .max(180)
         .build());
 
+    private final Setting<Verbosity> verbosity = sgGeneral.add(new EnumSetting.Builder<Verbosity>()
+        .name("подробность")
+        .description("Сколько писать в чат. «Только итог» молчит на каждом сундуке "
+            + "и в конце показывает сводку пропусков — иначе на большом стеше "
+            + "уходит сотня строк.")
+        .defaultValue(Verbosity.ТОЛЬКО_ИТОГ)
+        .build());
+
     private final Setting<Boolean> showZones = sgOverlay.add(new BoolSetting.Builder()
         .name("зоны")
         .description("Рисовать рамку зоны сортировки.")
@@ -290,6 +298,10 @@ public class StashSorter extends Module {
     private final Set<BlockPos> emptyClaims = new HashSet<>();
     private final List<BlockPos> spareEmpties = new ArrayList<>();
 
+    /** Причина пропуска -> сколько раз встретилась. Печатается сводкой в конце. */
+    private final Map<String, Integer> pendingNotes = new LinkedHashMap<>();
+    private final Map<String, String> pendingNoteDetail = new LinkedHashMap<>();
+
     private List<BlockPos> unknownCache = List.of();
     private long unknownCacheTime;
     private String unknownCacheDim = "";
@@ -363,6 +375,8 @@ public class StashSorter extends Module {
         depositLastCount = -1;
         menuSettled = false;
         timer = 0;
+        pendingNotes.clear();
+        pendingNoteDetail.clear();
         startTime = System.currentTimeMillis();
     }
 
@@ -494,7 +508,10 @@ public class StashSorter extends Module {
             withProbeSnapshots(snapshots, unknown), 1, origin, this::maxStackOfSig, pins,
             minItemsForOwnChest.get(), unknown);
 
-        for (String w : plan.warnings()) warning(w);
+        for (String w : plan.warnings()) {
+            if (verbosity.get() == Verbosity.ПОДРОБНО) warning(w);
+            else note("предупреждение плана", w);
+        }
 
         jobs = new ArrayList<>(plan.jobs());
         if (verifyEveryChest.get() && pass == 1) {
@@ -642,7 +659,7 @@ public class StashSorter extends Module {
         if (menu == null) {
             if (++openRetries >= MAX_RETRIES) skipJob("сундук закрывается в середине выдачи");
             else {
-                warning("Сундук закрылся при выдаче, открываю заново (" + openRetries + "/" + MAX_RETRIES + ").");
+                note("сундук закрылся при выдаче", "открываю заново (" + openRetries + "/" + MAX_RETRIES + ")");
                 state = SortState.OPEN_SOURCE;
                 timer = openDelay.get();
             }
@@ -726,7 +743,7 @@ public class StashSorter extends Module {
 
         if (currentDest == null) {
             deadRoutes.add(currentRouteKey);
-            warning("Для «" + SortGroupKey.friendlyName(currentRouteKey) + "» в зоне нет сундука — вещи останутся в инвентаре. Расширь зону на пустые сундуки или добавь их.");
+            note("нет сундука для «" + SortGroupKey.friendlyName(currentRouteKey) + "»", "вещи останутся в инвентаре");
             state = SortState.SELECT_DEST;
             return;
         }
@@ -785,12 +802,12 @@ public class StashSorter extends Module {
             if (wrongMenuOpen()) {
                 closeOpenContainer();
                 markFull(currentDest);
-                warning("Получатель — не сундук, беру следующий.");
+                note("получатель — не сундук", currentDest == null ? "?" : currentDest.toShortString());
                 state = SortState.SELECT_DEST;
             } else if (timedOut(OPEN_ALIGN_TIMEOUT)) {
                 if (++openRetries >= MAX_RETRIES) {
                     markFull(currentDest);
-                    warning("Сундук " + currentDest.toShortString() + " не открывается, беру следующий.");
+                    note("получатель не открывается", currentDest.toShortString());
                     state = SortState.SELECT_DEST;
                 } else {
                     closeOpenContainer();
@@ -821,7 +838,7 @@ public class StashSorter extends Module {
                 reindexOpenContainer(currentDest);
                 for (List<BlockPos> ts : sigTargets.values()) ts.remove(currentDest);
                 if (empty == 0) markFull(currentDest);
-                info("Сундук " + currentDest.toShortString() + " не пустой — записал в индекс, беру следующий.");
+                note("получатель не пустой", currentDest.toShortString() + " — записал в индекс");
                 state = SortState.CLOSE_DEST;
                 return;
             }
@@ -844,7 +861,7 @@ public class StashSorter extends Module {
         if (currentDest == null) return;
         if (timedOut(stuckTimeout.get())) {
             markFull(currentDest);
-            warning("Застрял при выдаче в " + currentDest.toShortString() + ", беру следующий сундук.");
+            note("застрял при выдаче", currentDest.toShortString());
             state = SortState.CLOSE_DEST;
             return;
         }
@@ -853,10 +870,10 @@ public class StashSorter extends Module {
         if (menu == null) {
             if (++openRetries >= MAX_RETRIES) {
                 markFull(currentDest);
-                warning("Получатель закрывается в середине выдачи, беру следующий.");
+                note("получатель закрылся при выдаче", currentDest.toShortString());
                 state = SortState.SELECT_DEST;
             } else {
-                warning("Сундук закрылся при выдаче, открываю заново (" + openRetries + "/" + MAX_RETRIES + ").");
+                note("сундук закрылся при выдаче", "открываю заново (" + openRetries + "/" + MAX_RETRIES + ")");
                 state = SortState.OPEN_DEST;
                 timer = openDelay.get();
             }
@@ -907,6 +924,8 @@ public class StashSorter extends Module {
             return;
         }
 
+        flushNotes();
+
         long seconds = Math.max(1L, (System.currentTimeMillis() - startTime) / 1000L);
         info(String.format("Готово: сундуков %d, переложено стопок %d и шалкеров %d за %d:%02d%s.",
             chestsSwept, stacksMoved, shulkersMoved, seconds / 60L, seconds % 60L,
@@ -928,7 +947,7 @@ public class StashSorter extends Module {
     private void skipJob(String reason) {
         closeOpenContainer();
         nav().stop();
-        warning("Пропускаю " + (currentJob == null ? "?" : currentJob.pos().toShortString()) + ": " + reason + ".");
+        note("пропущен сундук", (currentJob == null ? "?" : currentJob.pos().toShortString()) + " — " + reason);
         jobIdx++;
         state = SortState.SELECT_JOB;
         timer = moveDelay.get();
@@ -938,8 +957,48 @@ public class StashSorter extends Module {
         closeOpenContainer();
         nav().stop();
         markFull(currentDest);
-        warning("Получатель " + (currentDest == null ? "?" : currentDest.toShortString()) + ": " + reason + " — беру следующий.");
+        note("проблемный получатель", (currentDest == null ? "?" : currentDest.toShortString()) + " — " + reason);
         state = SortState.SELECT_DEST;
+    }
+
+    /**
+     * Сообщение о походовой неудаче. На большом стеше таких сотни, поэтому в
+     * режиме «только итог» текст не пишется — вместо него копится счётчик,
+     * и всё накопленное показывается одной строкой в конце прогона.
+     */
+    private void note(String reason, String detail) {
+        if (verbosity.get() == Verbosity.ПОДРОБНО) {
+            warning("Пропуск: " + reason + " — " + detail + ".");
+            return;
+        }
+        pendingNotes.merge(reason, 1, Integer::sum);
+        if (verbosity.get() == Verbosity.КРАТКО && !pendingNoteDetail.containsKey(reason)) {
+            pendingNoteDetail.put(reason, detail);
+        }
+    }
+
+    /** Накопленная сводка пропусков. Одна строка в конце прогона. */
+    private void flushNotes() {
+        if (pendingNotes.isEmpty()) return;
+
+        StringBuilder sb = new StringBuilder("Пропусков: ");
+        boolean first = true;
+        for (Map.Entry<String, Integer> e : pendingNotes.entrySet()) {
+            if (!first) sb.append(", ");
+            first = false;
+            sb.append(e.getKey()).append(" ×").append(e.getValue());
+        }
+        warning(sb + ".");
+
+        if (verbosity.get() == Verbosity.КРАТКО) {
+            for (Map.Entry<String, Integer> e : pendingNotes.entrySet()) {
+                String detail = pendingNoteDetail.get(e.getKey());
+                if (detail != null) warning("  " + e.getKey() + ": " + detail);
+            }
+        }
+
+        pendingNotes.clear();
+        pendingNoteDetail.clear();
     }
 
     private void enterPause(PauseReason reason, String message) {
@@ -1138,8 +1197,7 @@ public class StashSorter extends Module {
 
         overflowChests.put(overflowKey, best);
         sigTargets.computeIfAbsent(overflowKey, k -> new ArrayList<>()).add(best);
-        info("Сундук " + best.toShortString() + " станет домом для «" + SortGroupKey.friendlyName(overflowKey)
-            + "» — в инвентаре осталось то, для чего дома в зоне нет.");
+        note("аварийный дом для «" + SortGroupKey.friendlyName(overflowKey) + "»", best.toShortString());
         return best;
     }
 
@@ -1779,6 +1837,23 @@ public class StashSorter extends Module {
     }
 
     // ------------------------------------------------------------------
+
+    public enum Verbosity {
+        ТОЛЬКО_ИТОГ("Только итог"),
+        КРАТКО("Кратко"),
+        ПОДРОБНО("Подробно");
+
+        private final String title;
+
+        Verbosity(String title) {
+            this.title = title;
+        }
+
+        @Override
+        public String toString() {
+            return title;
+        }
+    }
 
     public enum LooseItems {
         MIXED_CHEST("Смешанный сундук"),
