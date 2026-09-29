@@ -23,7 +23,6 @@ import com.b2xy.modules.HoleSnap;
 import com.b2xy.modules.GrimVelocity;
 import com.b2xy.modules.NewChunks;
 import com.b2xy.modules.InvFix2b2t;
-import com.b2xy.modules.NameTags;
 import com.b2xy.modules.NoHurtCam;
 import com.b2xy.modules.NoJumpDelay;
 import com.b2xy.modules.NoWeb;
@@ -63,7 +62,6 @@ public class B2XY extends MeteorAddon {
         Modules.get().add(new NewChunks());
         Modules.get().add(new AutoWither());
         Modules.get().add(new AutoXp());
-        Modules.get().add(new NameTags());
         Modules.get().add(new BetterF5());
         Modules.get().add(new InvFix2b2t());
         Modules.get().add(new CrystalAuraTurbo());
