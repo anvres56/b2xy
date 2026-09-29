@@ -21,7 +21,8 @@
     "HeldItemRendererMixin",
     "ItemRenderStateLayerMixin",
     "PlayerEntityPoseMixin",
-    "ElytraFeatureRendererMixin"
+    "ElytraFeatureRendererMixin",
+    "LivingEntityRendererLyingMixin"
   ],
   "injectors": {
     "defaultRequire": 1
