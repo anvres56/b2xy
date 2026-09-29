@@ -22,7 +22,8 @@
     "ItemRenderStateLayerMixin",
     "PlayerEntityPoseMixin",
     "ElytraFeatureRendererMixin",
-    "LivingEntityRendererLyingMixin"
+    "LivingEntityRendererLyingMixin",
+    "PlayerEntityRendererChestplateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

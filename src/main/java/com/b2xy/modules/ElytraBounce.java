@@ -174,6 +174,14 @@ public class ElytraBounce extends Module {
         .defaultValue(false)
         .build());
 
+    private final Setting<Boolean> showChestplate = sgGeneral.add(new BoolSetting.Builder()
+        .name("нагрудник-вместо-элитр")
+        .description("На своём клиенте на груди рисуется нагрудник, хотя в слоте лежат "
+            + "элитры. Подменяется только то, что уходит в отрисовку, предмет в слоте "
+            + "не трогаем — полёт и сервер видят настоящие элитры. На чужих игроков не влияет.")
+        .defaultValue(false)
+        .build());
+
     private boolean startSprinting;
     private boolean jumpKeyDown;
     private BlockPos portalTrap = null;
@@ -199,6 +207,12 @@ public class ElytraBounce extends Module {
 
     public ElytraBounce() {
         super(B2XY.CATEGORY, "elytra-bounce", "Эфли-полёт: bounce, фиксы ротаций, обход препятствий, фейк-флай.");
+    }
+
+    /** Показывать нагрудник вместо элитр на своём клиенте. Гейт для миксина. */
+    public static boolean showChestplate() {
+        ElytraBounce module = meteordevelopment.meteorclient.systems.modules.Modules.get().get(ElytraBounce.class);
+        return module != null && module.isActive() && module.showChestplate.get();
     }
 
     /** Рисовать ли на своём клиенте падение вместо планирования. Гейт для миксинов. */
