@@ -19,7 +19,9 @@
     "CobwebBlockMixin",
     "MinecraftClientMixin",
     "HeldItemRendererMixin",
-    "ItemRenderStateLayerMixin"
+    "ItemRenderStateLayerMixin",
+    "PlayerEntityPoseMixin",
+    "ElytraFeatureRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

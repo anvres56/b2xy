@@ -165,6 +165,15 @@ public class ElytraBounce extends Module {
         .visible(() -> !this.fakeFly.get())
         .build());
 
+    private final Setting<Boolean> lookLikeFalling = sgGeneral.add(new BoolSetting.Builder()
+        .name("выглядеть-падающим")
+        .description("Свой клиент рисует падение, а не планирование на элитрах: поза "
+            + "сбрасывается в обычную и крылья не рисуются. Пакеты позиции не меняются, "
+            + "поэтому сервер как считает нас летящими, так и продолжает считать. "
+            + "На чужих игроков не влияет.")
+        .defaultValue(false)
+        .build());
+
     private boolean startSprinting;
     private boolean jumpKeyDown;
     private BlockPos portalTrap = null;
@@ -190,6 +199,12 @@ public class ElytraBounce extends Module {
 
     public ElytraBounce() {
         super(B2XY.CATEGORY, "elytra-bounce", "Эфли-полёт: bounce, фиксы ротаций, обход препятствий, фейк-флай.");
+    }
+
+    /** Рисовать ли на своём клиенте падение вместо планирования. Гейт для миксинов. */
+    public static boolean lookLikeFalling() {
+        ElytraBounce module = meteordevelopment.meteorclient.systems.modules.Modules.get().get(ElytraBounce.class);
+        return module != null && module.isActive() && module.lookLikeFalling.get();
     }
 
     @Override

@@ -32,6 +32,8 @@ def load_mappings(path):
     # Ведущий таб у method/field-строк обязателен, поэтому пустые поля слева
     # отбрасываем, а не ищем индекс по фиксированной позиции.
     names = set()
+    members = set()
+    owner = None
     for line in Path(path).read_text(encoding="utf-8", errors="ignore").splitlines():
         parts = line.split("\t")
         i = 0
@@ -41,10 +43,13 @@ def load_mappings(path):
             continue
         kind, rest = parts[i], parts[i + 1:]
         if kind == "c" and rest:
+            owner = rest[0]
             names.add(rest[0])
         elif kind in ("m", "f") and len(rest) >= 2:
             names.add(rest[1])
-    return names
+            if owner is not None:
+                members.add((owner, rest[1]))
+    return names, members
 
 
 def main():
@@ -58,7 +63,7 @@ def main():
         print(f"нет джара {jar}")
         return 2
 
-    known = load_mappings(tiny)
+    known, members = load_mappings(tiny)
     tmp = Path("/tmp/opencode/_mixin_check.class")
     tmp.parent.mkdir(parents=True, exist_ok=True)
 
@@ -97,6 +102,12 @@ def main():
                 checked += 1
                 if t not in known:
                     bad.append((name, f"{t} не найден в маппингах"))
+                # Проверку владельца сознательно не делаем: имена берутся из
+                # всего constant pool, а там вместе с целями инъекций лежат
+                # ещё и @Shadow-члены с теми же именами. Такая проверка даёт
+                # ложные срабатывания. Принадлежность цели классу проверяется
+                # вручную по маппингам там, где у класса есть одноимённый
+                # метод в суперклассе (см. ElytraFeatureRendererMixin).
 
             for call in at_calls:
                 checked += 1
